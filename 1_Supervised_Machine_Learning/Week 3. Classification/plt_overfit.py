@@ -8,6 +8,8 @@ from matplotlib.gridspec import GridSpec
 from matplotlib.widgets import Button, CheckButtons
 from sklearn.linear_model import LogisticRegression, Ridge
 from lab_utils_common import np, plt, dlc, predict_logistic, plot_data, zscore_normalize_features
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import make_pipeline
 
 def map_one_feature(X1, degree):
     """
@@ -333,8 +335,9 @@ class overfit_example():
         self.X_mapped_scaled, self.X_mu, self.X_sigma  = zscore_normalize_features(self.X_mapped)
 
         #linear_model = LinearRegression()
-        linear_model = Ridge(alpha=self.lambda_, normalize=True, max_iter=10000)
+        linear_model = make_pipeline(StandardScaler(), Ridge(alpha=self.lambda_, max_iter=10000))
         linear_model.fit(self.X_mapped_scaled, self.y )
+        linear_model = linear_model.named_steps["ridge"]
         self.w = linear_model.coef_.reshape(-1,)
         self.b = linear_model.intercept_
         x = np.linspace(*self.xlim,30)  #plot line idependent of data which gets disordered
@@ -356,7 +359,7 @@ class overfit_example():
         self.X_mapped, _ =  map_feature(self.X[:, 0], self.X[:, 1], self.degree)
         self.X_mapped_scaled, self.X_mu, self.X_sigma  = zscore_normalize_features(self.X_mapped)
         if not self.regularize or self.lambda_ == 0:
-            lr = LogisticRegression(penalty='none', max_iter=10000)
+            lr = LogisticRegression(penalty=None, max_iter=10000)
         else:
             C = 1/self.lambda_
             lr = LogisticRegression(C=C, max_iter=10000)
